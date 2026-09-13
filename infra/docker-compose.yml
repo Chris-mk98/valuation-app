@@ -1,0 +1,27 @@
+# 실행: docker compose -f infra/docker-compose.yml up --build
+# (설계서 §1 폴더구조에 따라 compose 는 infra/ 에 둔다)
+services:
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      # 값은 .env 에서 주입 (키는 코드/로그에 노출 금지)
+      DART_API_KEY: ${DART_API_KEY:-}
+      ECOS_API_KEY: ${ECOS_API_KEY:-}
+      DATABASE_URL: sqlite:////data/cache/valuation.db
+    volumes:
+      - ../data:/data
+    env_file:
+      - ../.env
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
