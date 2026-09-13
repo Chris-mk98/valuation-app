@@ -123,3 +123,12 @@ Claude Code 작업 기록: 무엇을 시켰고 / 무엇이 문제였고 / 어떻
 - **프로젝트 현황**: Stage 0~10 전 파이프라인 완성. 삼성전자로 케이스 생성→수집→정규화→유사기업→WACC→DCF→
   시장→자산→몬테카를로→목적별 종합→산출물까지 실계 동작. 승인 연쇄·하위 무효화·lineage·오버라이드 사유필수
   ·목적별 규칙·레드플래그 승인 게이트 일관 적용.
+
+## 2026-09-13 · 커밋 정리·GitHub push·CI·README
+
+- **작업**: 스테이지별 11개 커밋으로 정리(스켈레톤/core/Stage0-2~Stage10), master→main 개명, SSH로
+  github.com/Chris-mk98/valuation-app push. README 포트폴리오 정비(CI 배지·10스테이지 표·실계 삼성 예시·풋볼필드).
+- **발견된 문제**: 한 세션 일괄 구현이라 중간 히스토리 없음 → 공유 프레임워크 파일은 도입 Stage 커밋에 전체 내용 포함.
+  CI엔 sources extra(FDR/pykrx) 미설치 — 최상위 import 있으면 실패 위험.
+- **해결**: FDR/pykrx는 함수 내 지연 import라 CI 무영향 확인. GitHub Actions backend(ruff+pytest)·frontend(build)
+  **모두 success**. README 스텍 중복 잔재 제거. 시크릿·캐시 미커밋(키 히스토리 누출 없음) 확인.
