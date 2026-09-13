@@ -42,7 +42,12 @@ def _parse_amount(raw: str | float | int | None, divisor: float) -> float | None
 def _match(rows_by_stmt: dict[str, list[dict]], spec: dict, divisor: float) -> float | None:
     """매핑 스펙(statement + account_ids + account_names)에 맞는 첫 행의 금액을 반환."""
     stmt = spec.get("statement")
-    candidates = rows_by_stmt.get(stmt, [])
+    # 손익 계정은 별도 손익계산서(IS) 또는 포괄손익계산서(CIS)에 올 수 있다.
+    # 소형사는 CIS 한 장만 제출 → IS 스펙일 때 CIS 도 포함(IS 우선).
+    if stmt == "IS":
+        candidates = rows_by_stmt.get("IS", []) + rows_by_stmt.get("CIS", [])
+    else:
+        candidates = rows_by_stmt.get(stmt, [])
     ids = spec.get("account_ids") or []
     names = spec.get("account_names") or []
     # account_id 우선

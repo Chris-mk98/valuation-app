@@ -92,3 +92,45 @@ def test_resolve_corp_code_offline():
     assert got2["corp_code"] == CORP
     with pytest.raises(dart.DartError):
         dart.resolve_corp_code("존재하지않는회사명", cache_path=fixture)
+
+
+# --- CFS→OFS 폴백 (연결 미제출 소형사) -------------------------------------
+class _FakeResp:
+    def __init__(self, payload):
+        self._p = payload
+
+    def json(self):
+        return self._p
+
+
+class _FakeClient:
+    """fs_div 별 응답을 주입하는 가짜 httpx 클라이언트."""
+
+    def __init__(self, by_fs_div):
+        self.by_fs_div = by_fs_div
+        self.calls = []
+
+    def get(self, url, params=None):
+        self.calls.append(params["fs_div"])
+        return _FakeResp(self.by_fs_div[params["fs_div"]])
+
+
+def test_get_financials_falls_back_cfs_to_ofs(db):
+    """연결(CFS) 013(데이터없음)이면 별도(OFS)로 폴백해 수집한다."""
+    fc = _FakeClient({
+        "CFS": {"status": "013", "message": "조회된 데이타가 없습니다."},
+        "OFS": {"status": "000", "list": [{"account_nm": "매출액", "thstrm_amount": "100"}]},
+    })
+    rows = dart.get_financials(db, "00173591", "2022", client=fc)
+    assert len(rows) == 1
+    assert fc.calls == ["CFS", "OFS"]  # CFS 먼저 → 013 → OFS 폴백
+    # OFS 로 캐시됨
+    assert db.query(RawDart).filter_by(corp_code="00173591", fs_div="OFS").count() == 1
+
+
+def test_get_financials_ofs_no_fallback_to_cfs(db):
+    """명시적 OFS 가 013이면 폴백 없이 예외(무한폴백 방지)."""
+    fc = _FakeClient({"OFS": {"status": "013", "message": "없음"}})
+    with pytest.raises(dart.DartError):
+        dart.get_financials(db, "00173591", "2022", fs_div="OFS", client=fc)
+    assert fc.calls == ["OFS"]

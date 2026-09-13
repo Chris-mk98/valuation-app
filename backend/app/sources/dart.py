@@ -180,6 +180,10 @@ def get_financials(
          {k: v for k, v in params.items() if k != "crtfc_key"},
          data.get("status"), data.get("message"), cache_hit=False)
     if data.get("status") != "000":
+        # 연결(CFS) 미제출 소형·별도제출 기업은 별도(OFS)만 존재 → 자동 폴백(013: 데이터 없음)
+        if fs_div == "CFS" and data.get("status") == "013":
+            return get_financials(db, corp_code, bsns_year, reprt_code=reprt_code,
+                                  fs_div="OFS", client=client)
         raise DartError(
             f"fnlttSinglAcntAll status={data.get('status')} {data.get('message')} "
             f"(corp={corp_code}, year={bsns_year})"

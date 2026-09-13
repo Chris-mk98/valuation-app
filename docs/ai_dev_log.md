@@ -142,3 +142,24 @@ Claude Code 작업 기록: 무엇을 시켰고 / 무엇이 문제였고 / 어떻
 - **해결**: 실행 대신 배포 자산 완비. Dockerfile 린트체크 통과, 단일 서비스 로컬 검증(/ UI·/health·/openapi 동시
   응답). pytest 125 통과 유지. 실제 배포는 사용자 AWS 자격증명 필요 — 방법 A(GH Actions 시크릿)·B(로컬 aws
   configure) 안내. 이미지에 .env 미포함(키는 App Runner 환경변수 주입).
+
+## 2026-09-13 · AWS ECS Express Mode 배포 완료
+
+- **작업**: App Runner 신규가입 중단(2026-04-30) 확인 → ECS Express Mode 로 전환. AWS 에이전트 툴킷 설정(AWS
+  CLI v2·브라우저 로그인·MCP·스킬 23종·CLAUDE.md 규칙). GitHub Actions Deploy 워크플로로 ECR 푸시. IAM 실행/인프라
+  역할(관리형 정책) + 클러스터 생성 → create-express-gateway-service(ALB·SG·오토스케일 자동). 키는 Secrets Manager
+  → update-express-gateway-service 로 주입.
+- **발견된 문제**: 첫 시크릿 배포가 ROLLBACK_SUCCESSFUL("active alarm") — 초기 배포 안정화 중 RollbackAlarm 전이
+  상태 타이밍 이슈(새 태스크는 /health 200 정상). 인프라 관리형 정책 ARN 이 service-role/ 경로.
+- **해결**: 알람 OK 안정 후 재배포 → SUCCESSFUL. 라이브 검증: UI·API(54개)·DART 실호출(삼성 케이스 생성 200)
+  전부 정상. URL: va-5456fafc704043908262540477e9856a.ecs.ap-northeast-2.on.aws. 이미지에 키 미포함(Secrets Manager).
+
+## 2026-09-13 · 삼성 외 기업 수집·정규화 버그 수정
+
+- **작업**: 사용자 제보 "삼성만 되고 세원물산 등은 수집부터 실패". 근본원인 2건 수정 + 테스트 2건(총 127).
+- **발견된 문제**: ① Stage 1 수집이 연결(CFS)만 조회 → 연결 미제출 소형사(세원물산 등)는 전 연도 0행(삼성은
+  CFS 있어 우연히 동작). ② 정규화가 `statement:"IS"`를 `sj_div="IS"`로만 매칭 → 매출·영업이익을 포괄손익계산서
+  (CIS)에 싣는 소형사는 전부 None.
+- **해결**: ① get_financials 에 CFS→OFS 폴백(status 013일 때만, OFS→CFS 역폴백 없음). ② s2_normalize._match
+  가 IS 스펙일 때 CIS 도 포함(IS 우선). 검증: 세원물산 매출 1,930억·영업이익 59억·순현금 정상 정규화, 삼성 회귀
+  통과. pytest 127 passed, ruff 통과. 재배포는 GitHub Actions Deploy(ECR→Express 자동배포).
