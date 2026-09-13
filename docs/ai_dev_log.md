@@ -163,3 +163,14 @@ Claude Code 작업 기록: 무엇을 시켰고 / 무엇이 문제였고 / 어떻
 - **해결**: ① get_financials 에 CFS→OFS 폴백(status 013일 때만, OFS→CFS 역폴백 없음). ② s2_normalize._match
   가 IS 스펙일 때 CIS 도 포함(IS 우선). 검증: 세원물산 매출 1,930억·영업이익 59억·순현금 정상 정규화, 삼성 회귀
   통과. pytest 127 passed, ruff 통과. 재배포는 GitHub Actions Deploy(ECR→Express 자동배포).
+- **라이브 반영**: ECS Express 는 :latest 재푸시로 자동배포 안 됨 → 새 digest 로 update-express-gateway-service
+  재배포. 라이브 검증: 세원물산 수집 140행·정규화 매출 1,930억 정상.
+
+## 2026-09-13 · 마무리: CLAUDE.md 커밋·데모정리·README 전면 재작성
+
+- **작업**: CLAUDE.md(AWS 툴킷 규칙+help_level) 커밋. 데모 케이스 정리(ECS 태스크 중지→빈 SQLite 재기동).
+  README 전면 재작성 — 데이터 흐름(mermaid), 10단계, 기능, 배포환경(AWS 초보자용 용어표·아키텍처), 코드수정·
+  배포전략(digest 재배포·롤백 주의), TO-DO(영속화·UI/UX·자동화 등).
+- **발견된 문제**: 케이스 삭제 API 부재 → 데모정리 수단 없음. SQLite 휘발성(재시작 시 소실).
+- **해결**: 삭제 엔드포인트 추가 대신(YAGNI) 태스크 재시작으로 임시 DB 초기화(이전 검증케이스 404 확인).
+  영속화·삭제기능·digest 자동배포를 README TO-DO 에 명시. 오늘 작업 종료.
