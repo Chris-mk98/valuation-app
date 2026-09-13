@@ -1,0 +1,143 @@
+# DART 표준계정(XBRL) → 내부 계정 매핑 (Stage 2 정규화)
+# 매칭: account_id 우선, 없으면 account_nm(계정명) 폴백. statement(sj_div)로 재무제표 한정.
+# 삼성전자 2023 연결(fnlttSinglAcntAll) 실측으로 그라운딩. 관리자 화면/엑셀 템플릿으로 갱신 가능.
+version: "2026-09-12"
+unit_divisor: 1000000   # DART 금액(원) → 내부 단위(백만원)
+
+# --- 직접 매핑되는 최종 내부계정 ---
+targets:
+  revenue:                # 매출 (Q1: 별도 항목)
+    statement: IS
+    account_ids: [ifrs-full_Revenue]
+    account_names: ["매출액", "영업수익", "수익(매출액)", "매출"]
+  cost_of_sales:
+    statement: IS
+    account_ids: [ifrs-full_CostOfSales]
+    account_names: ["매출원가"]
+  gross_profit:
+    statement: IS
+    account_ids: [ifrs-full_GrossProfit]
+    account_names: ["매출총이익", "매출총이익(손실)"]
+  sga:
+    statement: IS
+    account_ids: [dart_TotalSellingGeneralAdministrativeExpenses]
+    account_names: ["판매비와관리비"]
+  ebit:                   # Q1: 공시 영업이익 그대로. 미잡히면 gross_profit - sga 폴백(코드)
+    statement: IS
+    account_ids: [dart_OperatingIncomeLoss, ifrs-full_ProfitLossFromOperatingActivities]
+    account_names: ["영업이익", "영업이익(손실)"]
+  pretax_income:
+    statement: IS
+    account_ids: [ifrs-full_ProfitLossBeforeTax]
+    account_names: ["법인세비용차감전순이익(손실)", "법인세비용차감전순이익", "법인세차감전순이익(손실)"]
+  tax_expense:
+    statement: IS
+    account_ids: [ifrs-full_IncomeTaxExpenseContinuingOperations]
+    account_names: ["법인세비용", "법인세비용(수익)"]
+  net_income:
+    statement: IS
+    account_ids: [ifrs-full_ProfitLoss]
+    account_names: ["당기순이익(손실)", "당기순이익"]
+  interest_expense:             # Kd(이자비용/평균차입금). 금융비용 전체가 아닌 '이자'만 사용.
+    statement: CF
+    account_ids: [ifrs-full_InterestPaidClassifiedAsOperatingActivities]
+    account_names: ["이자의 지급", "이자비용", "이자지급"]
+  cash:                   # Q4: 순차입금에서 차감(현금및현금성자산만)
+    statement: BS
+    account_ids: [ifrs-full_CashAndCashEquivalents]
+    account_names: ["현금및현금성자산"]
+  nci:                    # 비지배지분 (BS)
+    statement: BS
+    account_ids: [ifrs-full_NoncontrollingInterests]
+    account_names: ["비지배지분"]
+  total_equity:
+    statement: BS
+    account_ids: [ifrs-full_Equity]
+    account_names: ["자본총계"]
+  owners_equity:
+    statement: BS
+    account_ids: [ifrs-full_EquityAttributableToOwnersOfParent]
+    account_names: ["지배기업 소유주지분", "지배기업의 소유주에게 귀속되는 자본"]
+
+# --- 감가상각비: 회사에 따라 개별 라인이 없을 수 있음(삼성=주석). 후보 시도 → 없으면 unmapped(Q2) ---
+dna_candidates:
+  depreciation:
+    statement: CF
+    account_ids: [dart_DepreciationExpense, ifrs-full_DepreciationExpense,
+                  dart_DepreciationPropertyPlantAndEquipment]
+    account_names: ["감가상각비"]
+  amortization:
+    statement: CF
+    account_ids: [dart_AmortisationExpense, ifrs-full_AmortisationIntangibleAssets,
+                  dart_AmortizationOfIntangibleAssets]
+    account_names: ["무형자산상각비", "무형자산의 상각"]
+  dna_combined:           # 감가상각비+무형상각이 합쳐진 단일 라인
+    statement: CF
+    account_ids: [dart_DepreciationAndAmortisationExpense]
+    account_names: ["감가상각비및무형자산상각비", "유무형자산상각비", "감가상각비와 무형자산상각비"]
+
+# --- 합성용 원천 계정 (composite 계산에만 사용) ---
+components:
+  # CAPEX (CF, 취득=양수)
+  purchase_ppe:
+    statement: CF
+    account_ids: [ifrs-full_PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities]
+    account_names: ["유형자산의 취득"]
+  purchase_intangible:
+    statement: CF
+    account_ids: [ifrs-full_PurchaseOfIntangibleAssetsClassifiedAsInvestingActivities]
+    account_names: ["무형자산의 취득"]
+  # NWC 영업운전자산 (Q3: 현금·차입금 제외)
+  trade_receivables:
+    statement: BS
+    account_ids: [ifrs-full_CurrentTradeReceivables]
+    account_names: ["매출채권"]
+  inventories:
+    statement: BS
+    account_ids: [ifrs-full_Inventories]
+    account_names: ["재고자산"]
+  other_current_assets:
+    statement: BS
+    account_ids: [ifrs-full_OtherCurrentAssets]
+    account_names: ["기타유동자산"]
+  # NWC 영업운전부채
+  trade_payables:
+    statement: BS
+    account_ids: [ifrs-full_TradeAndOtherCurrentPayablesToTradeSuppliers]
+    account_names: ["매입채무"]
+  accrued_expenses:
+    statement: BS
+    account_ids: [ifrs-full_AccrualsClassifiedAsCurrent]
+    account_names: ["미지급비용"]
+  advances_received:
+    statement: BS
+    account_ids: [dart_ShortTermAdvancesCustomers]
+    account_names: ["선수금"]
+  other_current_liabilities:
+    statement: BS
+    account_ids: [ifrs-full_OtherCurrentLiabilities]
+    account_names: ["기타유동부채"]
+  # 순차입금 원천 (Q4)
+  short_term_borrowings:      # account_id 미사용 → 계정명 매칭
+    statement: BS
+    account_ids: []
+    account_names: ["단기차입금"]
+  current_lt_debt:
+    statement: BS
+    account_ids: [ifrs-full_CurrentPortionOfLongtermBorrowings]
+    account_names: ["유동성장기부채"]
+  bonds:
+    statement: BS
+    account_ids: [ifrs-full_NoncurrentPortionOfNoncurrentBondsIssued]
+    account_names: ["사채"]
+  long_term_borrowings:
+    statement: BS
+    account_ids: [ifrs-full_NoncurrentPortionOfNoncurrentLoansReceived, ifrs-full_LongtermBorrowings]
+    account_names: ["장기차입금"]
+
+# 합성 규칙(설명용, 실제 계산은 stages/s2_normalize.py 코드에 명시)
+composites_doc:
+  capex: "purchase_ppe + purchase_intangible"
+  nwc: "(trade_receivables + inventories + other_current_assets) - (trade_payables + accrued_expenses + advances_received + other_current_liabilities)"
+  net_debt: "(short_term_borrowings + current_lt_debt + bonds + long_term_borrowings) - cash"
+  dna: "depreciation + amortization  (또는 dna_combined; 모두 없으면 unmapped)"
