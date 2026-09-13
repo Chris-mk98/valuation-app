@@ -1,0 +1,20 @@
+# 합병비율 (자본시장법 시행령) — docs/data_flow.md §9
+purpose: merger_ratio
+label: "합병비율 (자본시장법)"
+legal_basis: "자본시장과 금융투자업에 관한 법률 시행령 제176조의5"
+
+# 수익가치 : 자산가치 = 1.5 : 1, 가중치 편집 잠금
+method_weights:
+  editable: false
+  income: 1.5   # 수익가치
+  asset: 1.0    # 자산가치
+  market: null  # 시장접근 미사용(비상장 합병가액 산정 기준)
+
+constraints:
+  weight_ratio_income_to_asset: [1.5, 1.0]
+  notes:
+    - "상장법인은 시장가격 기준, 비상장법인은 본질가치(수익·자산) 기준."
+
+override:
+  allowed: false            # 가중치 편집 잠금
+  requires_warning_ack: true

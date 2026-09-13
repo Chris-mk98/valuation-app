@@ -1,0 +1,23 @@
+# 손상검사 (K-IFRS 1036) — docs/data_flow.md §9
+purpose: impairment
+label: "손상검사 (K-IFRS 1036)"
+legal_basis: "K-IFRS 제1036호 자산손상"
+
+# 사용가치 vs 공정가치를 병렬 표시(가중 산정이 아님) → 가중치 편집 무의미
+method_weights:
+  editable: false
+  income: null   # 수익가치(DCF)
+  asset: null    # 자산가치
+  market: null   # 시장가치
+
+constraints:
+  forecast_years_max: 5            # 예측기간 5년 초과 경고/강제
+  terminal_growth_cap: nominal_gdp # 영구성장률 상한 = 명목GDP 장기
+  parallel_value_bases:            # 병렬 표시할 회수가능액 구성
+    - value_in_use                 # 사용가치
+    - fair_value_less_costs        # 처분부대원가 차감 공정가치
+
+# 제약 위반값은 경고를 승인해야만 진행(오버라이드 허용, 승인 기록)
+override:
+  allowed: true
+  requires_warning_ack: true

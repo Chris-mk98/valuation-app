@@ -1,0 +1,22 @@
+# 상증세법 보충적평가 — docs/data_flow.md §9
+purpose: inheritance_gift
+label: "상증세법 보충적평가"
+legal_basis: "상속세 및 증여세법 제63조·시행령 제54조"
+
+# 순손익가치 : 순자산가치 = 3 : 2, 가중치 편집 잠금
+method_weights:
+  editable: false
+  income: 3.0   # 순손익가치
+  asset: 2.0    # 순자산가치
+  market: null
+
+constraints:
+  weight_ratio_income_to_asset: [3.0, 2.0]
+  net_asset_floor_ratio: 0.8       # 순자산가치의 80% 하한(가중평균이 이보다 낮으면 대체)
+  controlling_shareholder_premium: # 최대주주 등 할증
+    enabled: true
+    default_rate: 0.20             # 기본 20% (지분율·중소기업 여부에 따라 조정)
+
+override:
+  allowed: false
+  requires_warning_ack: true

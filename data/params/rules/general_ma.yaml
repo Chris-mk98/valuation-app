@@ -1,0 +1,19 @@
+# 일반 M&A — docs/data_flow.md §9
+purpose: general_ma
+label: "일반 M&A"
+legal_basis: "법정 제약 없음(당사자 합의)"
+
+# 사용자가 방법론 가중치를 자유롭게 설정
+method_weights:
+  editable: true
+  income: null
+  asset: null
+  market: null
+
+constraints:
+  forecast_years_max: null
+  terminal_growth_cap: nominal_gdp   # 실무 권고(강제 아님)
+
+override:
+  allowed: true
+  requires_warning_ack: false

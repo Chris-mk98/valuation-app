@@ -1,0 +1,27 @@
+# 공통 레드플래그 임계치 — docs/data_flow.md §9 리뷰 체크
+# 각 항목: 조건 위반 시 심각도(warn|flag)와 근거 임계치. Stage 9 리뷰 체크에서 평가한다.
+review_flags:
+  terminal_value_ratio_max:
+    threshold: 0.70           # TV 비중 > 70%
+    severity: flag
+    description: "터미널밸류가 기업가치의 70% 초과"
+  terminal_growth_vs_gdp:
+    rule: "g > nominal_gdp"   # 영구성장률 > 명목GDP
+    severity: flag
+    description: "영구성장률이 명목GDP 성장률 초과"
+  forecast_margin_vs_peak:
+    rule: "margin > historical_peak"  # 예측 마진 > 과거 최고치
+    severity: flag
+    description: "예측 영업이익률이 과거 최고치 초과"
+  capex_below_dna_persistent:
+    rule: "capex < dna (persistent)"  # CAPEX < D&A 지속
+    severity: warn
+    description: "CAPEX가 감가상각을 지속적으로 하회"
+  peers_min:
+    threshold: 5              # 유사기업 < 5개
+    severity: warn
+    description: "확정 유사기업 5개 미만"
+  beta_regression_r2_min:
+    threshold: 0.10           # 베타 회귀 R² < 0.1
+    severity: warn
+    description: "베타 회귀 설명력(R²) 0.1 미만"
