@@ -1,0 +1,6 @@
+[
+  {"code": "005930", "name": "삼성전자", "market": "KOSPI", "market_cap": 400000000000000, "shares": 5969782550, "sector": "통신 및 방송 장비 제조업", "industry": "이동전화기", "listing_date": "1975-06-11"},
+  {"code": "000660", "name": "SK하이닉스", "market": "KOSPI", "market_cap": 90000000000000, "shares": 728002365, "sector": "반도체 제조업", "industry": "메모리반도체", "listing_date": "1996-12-26"},
+  {"code": "009150", "name": "삼성전기", "market": "KOSPI", "market_cap": 11000000000000, "shares": 74693696, "sector": "전자부품 제조업", "industry": "MLCC", "listing_date": "1979-02-27"},
+  {"code": "000990", "name": "DB하이텍", "market": "KOSPI", "market_cap": 2000000000000, "shares": 44403000, "sector": "반도체 제조업", "industry": "파운드리", "listing_date": "1975-12-12"}
+]
