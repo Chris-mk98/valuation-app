@@ -7,9 +7,11 @@
 from __future__ import annotations
 
 import logging
+import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.api import cases, excel_routes, outputs, stages
 from app.config import get_settings
@@ -51,3 +53,9 @@ app.include_router(cases.router)
 app.include_router(stages.router)
 app.include_router(excel_routes.router)
 app.include_router(outputs.router)
+
+# 배포(App Runner 단일 서비스): 빌드된 프론트엔드 정적파일을 같은 오리진에서 서빙.
+# FRONTEND_DIST 가 설정된 경우에만 마운트 → 개발/테스트에는 영향 없음. API 라우트가 우선.
+_frontend_dist = os.environ.get("FRONTEND_DIST")
+if _frontend_dist and os.path.isdir(_frontend_dist):
+    app.mount("/", StaticFiles(directory=_frontend_dist, html=True), name="frontend")

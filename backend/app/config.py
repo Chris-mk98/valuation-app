@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from functools import lru_cache
 from pathlib import Path
 
@@ -17,7 +18,8 @@ logger = logging.getLogger(__name__)
 
 # 리포지토리 루트 (backend/ 의 부모)
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DATA_DIR = REPO_ROOT / "data"
+# 배포 이미지에서는 소스 레이아웃과 달라질 수 있어 DATA_DIR 을 env 로 오버라이드 가능하게 둔다.
+DATA_DIR = Path(os.environ["DATA_DIR"]) if os.environ.get("DATA_DIR") else REPO_ROOT / "data"
 
 
 class Settings(BaseSettings):

@@ -132,3 +132,13 @@ Claude Code 작업 기록: 무엇을 시켰고 / 무엇이 문제였고 / 어떻
   CI엔 sources extra(FDR/pykrx) 미설치 — 최상위 import 있으면 실패 위험.
 - **해결**: FDR/pykrx는 함수 내 지연 import라 CI 무영향 확인. GitHub Actions backend(ruff+pytest)·frontend(build)
   **모두 success**. README 스텍 중복 잔재 제거. 시크릿·캐시 미커밋(키 히스토리 누출 없음) 확인.
+
+## 2026-09-13 · App Runner 배포 준비
+
+- **작업**: 단일 서비스화(FastAPI가 API+프론트 정적 서빙, FRONTEND_DIST opt-in) + DATA_DIR env 오버라이드.
+  결합 Dockerfile(node 빌드→python+정적), 루트 .dockerignore(.env·캐시 제외), GitHub Actions deploy.yml
+  (빌드→ECR→App Runner), deploy-ecr.sh, infra/deploy/README(콘솔/CLI 절차·과금 주의).
+- **발견된 문제**: 환경에 AWS CLI·자격증명 없음, 디스크 92%(3.9GB)로 로컬 Docker 빌드 위험 → 배포 실행 불가.
+- **해결**: 실행 대신 배포 자산 완비. Dockerfile 린트체크 통과, 단일 서비스 로컬 검증(/ UI·/health·/openapi 동시
+  응답). pytest 125 통과 유지. 실제 배포는 사용자 AWS 자격증명 필요 — 방법 A(GH Actions 시크릿)·B(로컬 aws
+  configure) 안내. 이미지에 .env 미포함(키는 App Runner 환경변수 주입).
